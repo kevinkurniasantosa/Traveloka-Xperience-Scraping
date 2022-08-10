@@ -57,11 +57,49 @@ output_filename = 'Traveloka Scraping ' + today + '.csv'
 home_dir = os.path.expanduser('~')
 PROFILE_PATH = os.path.join(home_dir,'chromedriver')
 
+# Search for good IP
+def is_bad_proxy(pip):    
+    try:        
+        proxy_handler = urllib.request.ProxyHandler({'http': pip})        
+        opener = urllib.request.build_opener(proxy_handler)
+        opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+        urllib.request.install_opener(opener)        
+        sock = urllib2.urlopen('http://www.google.com')  # change the url address here
+#         sock = urllib2.urlopen(req)
+    except:
+        return 1
+    return 0
+
+# Read the list of proxy IPs in proxyList
+def get_random_ip(ips):
+    retry = len(ips)
+    success = 0
+    working_ip = ''
+    while retry > 0 and success == 0:
+        ip = ips[random.randint(1,len(ips)-1)]
+        if is_bad_proxy(ip):
+            print(ip, " is not working")
+            success = 0
+            retry = retry-1
+        else:
+            print(ip, "is working")
+            success = 1
+            working_ip = ip
+    return working_ip
+
 # SELENIUM setup
 # Disable infobars
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument('disable_infobars')
 # chrome_options.add_argument("--headless")
+
+ip = get_random_ip(ips)
+if ip!='':
+    chrome_options.add_argument('--proxy-server='+ ip)
+    print('using ip '+ ip)
+else:
+    print('no available ip')
+    
 # chrome_options.add_argument('--proxy-server=5.58.208.112:44356')
 # chrome_options.add_argument('--proxy-server=36.66.220.173:53850')
 
